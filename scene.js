@@ -1006,10 +1006,10 @@ function animate(now = 0) {
         targetCamPos.set(0, 10, 32);
         targetLookAt.set(0, 4, 0);
     } else if (statePhase === 'home') {
-        targetCamPos.set(0, 1.5, 58 * zoomFactor);
+        targetCamPos.set(0, 1.5, 70 * zoomFactor);
         targetLookAt.set(0, 0, 0);
     } else if (statePhase === 'projects_ring' || statePhase === 'socials_ring') {
-        targetCamPos.set(0, 1.5, 58 * zoomFactor);
+        targetCamPos.set(0, 1.5, 70 * zoomFactor);
         targetLookAt.set(0, 0, 0);
     } else if (statePhase === 'panel') {
         if (aspect < 1.0) {
