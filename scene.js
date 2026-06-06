@@ -63,6 +63,7 @@ function createHoloModel(geometry, color, fillOpacity = 0.22) {
         blending: THREE.AdditiveBlending
     });
     const mesh = new THREE.Mesh(geometry, meshMat);
+    mesh.userData.baseOpacity = fillOpacity;
     group.add(mesh);
 
     // Luminous sharp edges
@@ -73,6 +74,7 @@ function createHoloModel(geometry, color, fillOpacity = 0.22) {
         opacity: 0.95
     });
     const edges = new THREE.LineSegments(edgeGeom, lineMat);
+    edges.userData.baseLineOpacity = 0.95;
     group.add(edges);
 
     return group;
@@ -364,6 +366,59 @@ function buildXModel() {
     thinGeom2.center();
     const thinMesh2 = createHoloModel(thinGeom2, color, 0.22);
     group.add(thinMesh2);
+
+    return group;
+}
+
+// Social 04: TikTok (Music Note)
+function buildTikTokModel() {
+    const group = new THREE.Group();
+    const color = 0xff2a7f;
+
+    const shape = new THREE.Shape();
+    shape.absarc(-1.0, -1.5, 2.0, 0, Math.PI * 2, false);
+
+    const stem = new THREE.Shape();
+    stem.moveTo(0.2, -1.5);
+    stem.lineTo(1.2, -1.5);
+    stem.lineTo(1.2, 3.2);
+    stem.lineTo(0.2, 3.2);
+    stem.closePath();
+
+    const flag = new THREE.Shape();
+    flag.moveTo(1.2, 2.0);
+    flag.quadraticCurveTo(2.8, 2.0, 3.0, 3.2);
+    flag.lineTo(2.0, 3.2);
+    flag.quadraticCurveTo(1.8, 2.6, 1.2, 2.6);
+    flag.closePath();
+
+    const extrudeSettings = {
+        depth: 1.2,
+        bevelEnabled: true,
+        bevelSegments: 2,
+        steps: 1,
+        bevelSize: 0.15,
+        bevelThickness: 0.15
+    };
+
+    const geomBase = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    const geomStem = new THREE.ExtrudeGeometry(stem, extrudeSettings);
+    const geomFlag = new THREE.ExtrudeGeometry(flag, extrudeSettings);
+
+    const baseMesh = createHoloModel(geomBase, color, 0.22);
+    const stemMesh = createHoloModel(geomStem, color, 0.22);
+    const flagMesh = createHoloModel(geomFlag, color, 0.22);
+
+    group.add(baseMesh);
+    group.add(stemMesh);
+    group.add(flagMesh);
+
+    const box = new THREE.Box3().setFromObject(group);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    group.children.forEach(child => {
+        child.position.sub(center);
+    });
 
     return group;
 }
@@ -705,7 +760,7 @@ export function populateOrbitRing(ringId) {
         orbitGroup.remove(child);
     }
 
-    const radius = window.innerWidth < 600 ? 38 : 60;
+    const radius = window.innerWidth < 600 ? 15 : 22;
     const nodes = {};
 
     if (ringId === 'home') {
@@ -746,11 +801,12 @@ export function populateOrbitRing(ringId) {
             modelScales[k] = 0.001;
         });
     } else if (ringId === 'socials') {
-        const items = ['telegram', 'github', 'x', 'email', 'home'];
+        const items = ['telegram', 'github', 'x', 'tiktok', 'email', 'home'];
 
         nodes.telegram = buildTelegramModel();
         nodes.github = buildGitHubModel();
         nodes.x = buildXModel();
+        nodes.tiktok = buildTikTokModel();
         nodes.email = buildContactsModel();
         nodes.home = buildHomeModel();
 
@@ -868,12 +924,29 @@ function animate(now = 0) {
     }
 
     // Spotlight color & dynamic radius positioning lerp
-    const activeRadius = window.innerWidth < 600 ? 38 : 60;
+    const activeRadius = window.innerWidth < 600 ? 15 : 22;
     spotlight.position.z = activeRadius;
     spotlightMesh.position.z = activeRadius;
 
     spotlight.color.lerp(new THREE.Color(currentSpotlightColor), expF(0.1, dt));
     spotlightMesh.material.color.lerp(new THREE.Color(currentSpotlightColor), expF(0.1, dt));
+
+    // Calculate spotlight alignment fade
+    const statePhase = window.appStatePhase || 'boot';
+    let targetIntensity = 0;
+    let targetMeshOpacity = 0;
+    
+    if (statePhase === 'home' || statePhase === 'projects_ring' || statePhase === 'socials_ring') {
+        let rotationDiff = Math.abs(currentRotation - targetRotation) % (Math.PI * 2);
+        if (rotationDiff > Math.PI) rotationDiff = Math.PI * 2 - rotationDiff;
+        
+        const alignmentFactor = Math.max(0, 1 - rotationDiff * 4.0);
+        targetIntensity = alignmentFactor * 6.0;
+        targetMeshOpacity = alignmentFactor * 0.38;
+    }
+    
+    spotlight.intensity = THREE.MathUtils.lerp(spotlight.intensity, targetIntensity, expF(0.12, dt));
+    spotlightMesh.material.opacity = THREE.MathUtils.lerp(spotlightMesh.material.opacity, targetMeshOpacity, expF(0.12, dt));
 
     // Update dynamic grid uniforms
     if (waveGridMat) {
@@ -894,10 +967,28 @@ function animate(now = 0) {
     // Apply scale animations & float behavior to active ring children
     orbitGroup.children.forEach((child, idx) => {
         const key = child.userData.nodeKey || idx;
-        const targetScale = window.currentFocusedKey === key ? 1.35 : 0.85;
+        const targetScale = window.currentFocusedKey === key ? 1.4 : 0.3;
         
         modelScales[key] = THREE.MathUtils.lerp(modelScales[key] || 0.001, targetScale, expF(0.1, dt));
         child.scale.setScalar(modelScales[key]);
+
+        // Traverse child to fade opacity dynamically based on focus
+        const targetOpacityFactor = window.currentFocusedKey === key ? 1.0 : 0.02;
+        child.traverse(node => {
+            if (node.isMesh && node.material && node.material.uniforms && node.material.uniforms.opacity) {
+                node.material.uniforms.opacity.value = THREE.MathUtils.lerp(
+                    node.material.uniforms.opacity.value,
+                    (node.userData.baseOpacity !== undefined ? node.userData.baseOpacity : 0.22) * targetOpacityFactor,
+                    expF(0.12, dt)
+                );
+            } else if (node.isLine && node.material) {
+                node.material.opacity = THREE.MathUtils.lerp(
+                    node.material.opacity,
+                    (node.userData.baseLineOpacity !== undefined ? node.userData.baseLineOpacity : 0.95) * targetOpacityFactor,
+                    expF(0.12, dt)
+                );
+            }
+        });
         
         // Floating idle
         child.position.y = Math.sin(time + idx * Math.PI / 2) * 1.2;
@@ -917,12 +1008,11 @@ function animate(now = 0) {
         targetCamPos.set(0, 10, 32);
         targetLookAt.set(0, 4, 0);
     } else if (statePhase === 'home') {
-        targetCamPos.set(0, 25, 140 * zoomFactor);
-        targetLookAt.set(0, 2, 20);
+        targetCamPos.set(0, 1.5, 48 * zoomFactor);
+        targetLookAt.set(0, 0, 0);
     } else if (statePhase === 'projects_ring' || statePhase === 'socials_ring') {
-        // Move camera slightly back and center lookAt vertically to avoid cutoff
-        targetCamPos.set(0, 38, 125 * zoomFactor);
-        targetLookAt.set(0, 0, 20);
+        targetCamPos.set(0, 1.5, 48 * zoomFactor);
+        targetLookAt.set(0, 0, 0);
     } else if (statePhase === 'panel') {
         if (aspect < 1.0) {
             targetCamPos.set(0, 44, 150 * zoomFactor);
@@ -949,7 +1039,7 @@ function onWindowResize() {
         renderer.setSize(window.innerWidth, window.innerHeight);
 
         // Dynamically adjust orbit child positions on resize
-        const radius = window.innerWidth < 600 ? 38 : 60;
+        const radius = window.innerWidth < 600 ? 15 : 22;
         const count = orbitGroup.children.length;
         if (count === 4) {
             orbitGroup.children.forEach(child => {

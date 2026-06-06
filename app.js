@@ -47,6 +47,7 @@ const COLOR_MAP = {
     telegram: 0x2dd4bf,
     github: 0xe4e1e6,
     x: 0xddb7ff,
+    tiktok: 0xff2a7f,
     email: 0xffd28a
 };
 
@@ -64,13 +65,14 @@ const GLOW_RGB_MAP = {
     telegram: "45, 212, 191",
     github: "228, 225, 230",
     x: "221, 183, 255",
+    tiktok: "255, 42, 127",
     email: "255, 210, 138"
 };
 
 // Sections structure mapping for navigation
 const HOME_KEYS = ['about', 'projects', 'socials', 'contacts'];
 const PROJECT_KEYS = ['null_glitch', 'signal_stack', 'aurum', 'kernel_os', 'home'];
-const SOCIALS_KEYS = ['telegram', 'github', 'x', 'email', 'home'];
+const SOCIALS_KEYS = ['telegram', 'github', 'x', 'tiktok', 'email', 'home'];
 
 const I18N = {
     en: {
@@ -94,6 +96,7 @@ const I18N = {
             telegram: "TELEGRAM",
             github: "GITHUB",
             x: "X // TWITTER",
+            tiktok: "TIKTOK",
             email: "EMAIL // LINK",
             home: "BACK TO SYSTEM"
         },
@@ -156,6 +159,7 @@ const I18N = {
             telegram: "TELEGRAM",
             github: "GITHUB",
             x: "X // TWITTER",
+            tiktok: "TIKTOK",
             email: "EMAIL // LINK",
             home: "ВЕРНУТЬСЯ В СИСТЕМУ"
         },
@@ -463,6 +467,7 @@ function selectNode(key) {
                 telegram: "https://t.me/oklahomin",
                 github: "https://github.com/oklahomin",
                 x: "https://x.com/oklahomin",
+                tiktok: "https://tiktok.com/@oklahomin",
                 email: "mailto:gog459503@gmail.com"
             };
             const url = urls[key];

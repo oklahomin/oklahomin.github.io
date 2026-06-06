@@ -281,7 +281,7 @@ body { position: relative; user-select: none; }
 }
 .radial .radial-ring {
     position: absolute; inset: 0;
-    transform: rotateX(24deg) rotateZ(var(--ring-rot, 0deg));
+    transform: rotateX(8deg) rotateZ(var(--ring-rot, 0deg));
     transform-style: preserve-3d;
     pointer-events: none;
 }
@@ -294,7 +294,7 @@ body { position: relative; user-select: none; }
     cursor: pointer;
     pointer-events: none;
     outline: none;
-    transform: rotate(var(--node-deg, 0deg)) translateY(-165px) rotate(calc(-1 * var(--node-deg, 0deg)));
+    transform: rotate(var(--node-deg, 0deg)) translateY(-65px) rotate(calc(-1 * var(--node-deg, 0deg)));
 }
 
 @media (max-width: 560px) {
@@ -305,7 +305,7 @@ body { position: relative; user-select: none; }
     .radial .node {
         width: 88px; height: 88px;
         margin-left: -44px; margin-top: -44px;
-        transform: rotate(var(--node-deg, 0deg)) translateY(-92px) rotate(calc(-1 * var(--node-deg, 0deg)));
+        transform: rotate(var(--node-deg, 0deg)) translateY(-40px) rotate(calc(-1 * var(--node-deg, 0deg)));
     }
 }
 
@@ -313,7 +313,7 @@ body { position: relative; user-select: none; }
     .radial .node {
         width: 92px; height: 92px;
         margin-left: -46px; margin-top: -46px;
-        transform: rotate(var(--node-deg, 0deg)) translateY(-80px) rotate(calc(-1 * var(--node-deg, 0deg)));
+        transform: rotate(var(--node-deg, 0deg)) translateY(-35px) rotate(calc(-1 * var(--node-deg, 0deg)));
     }
 }
 
