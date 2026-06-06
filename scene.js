@@ -998,8 +998,6 @@ function animate(now = 0) {
     let targetCamPos = new THREE.Vector3();
     let targetLookAt = new THREE.Vector3(0, 0, 0);
 
-    const statePhase = window.appStatePhase || 'boot';
-
     // Portrait mode aspect ratio camera zoom compensation
     const aspect = window.innerWidth / window.innerHeight;
     const zoomFactor = aspect < 1.0 ? Math.max(1.0, Math.min(1.25, 0.82 / aspect)) : 1.0;
