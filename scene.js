@@ -16,6 +16,12 @@ let targetRotation = 0;
 let currentRotation = 0;
 let currentSpotlightColor = 0xb76dff;
 
+// Reusable color object — avoids per-frame allocations (~300/s GC pressure on mobile)
+const _tempColor = new THREE.Color();
+
+// Cached DOM reference for ring sync (populated on first animate tick)
+let _ringEl = null;
+
 const modelScales = {};
 
 // Helper: Volumetric Hologram Builder (Solid translucent body + glowing edges)
@@ -839,9 +845,9 @@ export function triggerBootIntroAnimation() {
 }
 
 export function triggerInitiateSystemTransition() {
-    // A1: тайминг по реальному времени — одинаково на 60 и 120 Гц.
-    const DURATION = 700; // мс
+    const DURATION = 700;
     const startTime = performance.now();
+    const startRotZ = bootLogoGroup ? bootLogoGroup.rotation.z : 0;
     mainGroup.visible = true;
     orbitGroup.visible = true;
     populateOrbitRing('home');
@@ -850,7 +856,7 @@ export function triggerInitiateSystemTransition() {
         if (!bootLogoGroup) return;
         const t = Math.min((now - startTime) / DURATION, 1);
         bootLogoGroup.scale.setScalar(THREE.MathUtils.lerp(1, 15, t));
-        bootLogoGroup.rotation.z += 0.04;
+        bootLogoGroup.rotation.z = startRotZ + t * Math.PI * 4;
         mainGroup.position.y = THREE.MathUtils.lerp(-100, 0, t);
         if (t < 1) {
             requestAnimationFrame(morph);
@@ -917,10 +923,10 @@ function animate(now = 0) {
     orbitGroup.rotation.y = currentRotation;
 
     // Sync HTML radial ring rotation with Three.js orbit rotation
-    const ring = document.querySelector('.radial .radial-ring');
-    if (ring) {
+    if (!_ringEl) _ringEl = document.querySelector('.radial .radial-ring');
+    if (_ringEl) {
         const deg = -currentRotation * (180 / Math.PI);
-        ring.style.setProperty('--ring-rot', `${deg}deg`);
+        _ringEl.style.setProperty('--ring-rot', `${deg}deg`);
     }
 
     // Spotlight color & dynamic radius positioning lerp
@@ -928,8 +934,8 @@ function animate(now = 0) {
     spotlight.position.z = activeRadius;
     spotlightMesh.position.z = activeRadius;
 
-    spotlight.color.lerp(new THREE.Color(currentSpotlightColor), expF(0.1, dt));
-    spotlightMesh.material.color.lerp(new THREE.Color(currentSpotlightColor), expF(0.1, dt));
+    spotlight.color.lerp(_tempColor.set(currentSpotlightColor), expF(0.1, dt));
+    spotlightMesh.material.color.lerp(_tempColor.set(currentSpotlightColor), expF(0.1, dt));
 
     // Calculate spotlight alignment fade
     const statePhase = window.appStatePhase || 'boot';
@@ -951,7 +957,7 @@ function animate(now = 0) {
     // Update dynamic grid uniforms
     if (waveGridMat) {
         waveGridMat.uniforms.time.value = time;
-        waveGridMat.uniforms.color.value.lerp(new THREE.Color(currentSpotlightColor), expF(0.1, dt));
+        waveGridMat.uniforms.color.value.lerp(_tempColor.set(currentSpotlightColor), expF(0.1, dt));
     }
 
     // Spin back wall technical emblem
@@ -961,7 +967,7 @@ function animate(now = 0) {
 
     // Lerp colors of back wall technical elements
     backWallMats.forEach(mat => {
-        mat.color.lerp(new THREE.Color(currentSpotlightColor), expF(0.1, dt));
+        mat.color.lerp(_tempColor.set(currentSpotlightColor), expF(0.1, dt));
     });
 
     // Apply scale animations & float behavior to active ring children

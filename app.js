@@ -76,7 +76,7 @@ const SOCIALS_KEYS = ['telegram', 'github', 'x', 'tiktok', 'email', 'home'];
 
 const I18N = {
     en: {
-        role: "System Architect // Creative Technologist",
+        role: "Backend Engineer // Co-founder, Yarkit Labs",
         initiate: "INITIATE SYSTEM",
         awaiting: "AWAITING_COMMAND",
         back: "BACK",
@@ -132,7 +132,7 @@ const I18N = {
                 { k: "USER",      v: "oklahomin" },
                 { k: "TELEGRAM",  v: "@oklahomin",                href: "https://t.me/oklahomin" },
                 { k: "MAIL",      v: "gog459503@gmail.com",       href: "mailto:gog459503@gmail.com" },
-                { k: "AVAILABLE", v: "Selective collaborations · remote" },
+                { k: "AVAILABLE", v: "Open to new projects · remote" },
             ],
             cta: "TRANSMIT MESSAGE",
             ctaHref: "mailto:gog459503@gmail.com",
@@ -496,12 +496,13 @@ function renderTopContext() {
 function closePanel() {
     window.SFX.close();
     STATE.activeProject = null;
-    
-    // Return back to matching subring or home phase
+
     if (STATE.activeSection === 'projects') {
         setPhase('projects_ring');
+        populateOrbitRing('projects');
     } else {
         setPhase('home');
+        populateOrbitRing('home');
     }
     STATE.activeSection = null;
     focusActiveNode();
@@ -669,6 +670,7 @@ function handleKey(e) {
 }
 
 function handleNodeHover(key) {
+    if (STATE.device === 'touch') return;
     const keys = getActiveKeys();
     const idx = keys.indexOf(key);
     if (idx !== -1 && idx !== STATE.focusedIndex) {
@@ -687,7 +689,7 @@ const SWIPE_ACTIVATE_PX = 12;    // ignore sub-pixel finger drift while tapping
 
 function handleTouchStart(e) {
     if (STATE.phase !== 'home' && STATE.phase !== 'projects_ring' && STATE.phase !== 'socials_ring') return;
-    if (e.target.closest('button') || e.target.closest('a')) return;
+    if (e.target.closest('a')) return;
     const touch = e.touches[0];
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;

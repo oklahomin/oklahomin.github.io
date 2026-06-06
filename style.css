@@ -325,9 +325,9 @@ body { position: relative; user-select: none; }
 
 /* Active Hit Zone Click Flash */
 .radial .node.is-active-click {
-    background: rgba(221,183,255,0.1) !important;
-    border-radius: 50%;
-    transform: scale(1.1) !important;
+    filter: brightness(1.5);
+    outline: 1px solid rgba(221,183,255,0.4);
+    outline-offset: 4px;
 }
 
 /* ===== HTML Panel Drawer Layout ===== */
