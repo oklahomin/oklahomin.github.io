@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html class="dark" lang="en" data-phase="boot" data-lang="en" data-device="keyboard">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta name="theme-color" content="#0A0A0B"/>
+<title>oklahomin // SYSTEM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "bg-void": "#0A0A0B",
+                    "surface": "#131316",
+                    "violet": "#ddb7ff",
+                    "violet-bright": "#f0dbff",
+                }
+            }
+        }
+    }
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Mobile Debug Console Overlay (C3: гейтится через ?debug=1, имеет крестик и автоскрытие) -->
+<div id="mobile-debug-console" style="position: fixed; top: 0; left: 0; right: 0; max-height: 96px; overflow-y: auto; background: rgba(220, 38, 38, 0.88); color: #ffffff; z-index: 100000; font-family: monospace; font-size: 10px; padding: 6px 28px 6px 8px; border-bottom: 1px solid #b91c1c; display: none; pointer-events: auto; white-space: pre-wrap;"></div>
+<button id="mobile-debug-close" type="button" aria-label="Dismiss debug console" style="position: fixed; top: 4px; right: 4px; z-index: 100001; width: 22px; height: 22px; border: none; background: rgba(0,0,0,0.35); color: #fff; font: 14px/1 monospace; cursor: pointer; display: none;">×</button>
+<script>
+    (function () {
+        var enabled = false;
+        try { enabled = /(?:^|[?&])debug=1(?:&|$)/.test(location.search || ""); } catch (e) {}
+        var consoleEl = document.getElementById('mobile-debug-console');
+        var closeBtn = document.getElementById('mobile-debug-close');
+        var hideTimer = null;
+
+        function show(msg) {
+            if (!enabled || !consoleEl) return;
+            consoleEl.style.display = 'block';
+            if (closeBtn) closeBtn.style.display = 'block';
+            consoleEl.innerHTML += '<div>' + msg + '</div>';
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+            if (hideTimer) clearTimeout(hideTimer);
+            hideTimer = setTimeout(hide, 10000);
+        }
+        function hide() {
+            if (consoleEl) { consoleEl.style.display = 'none'; consoleEl.innerHTML = ''; }
+            if (closeBtn) closeBtn.style.display = 'none';
+        }
+        if (closeBtn) closeBtn.addEventListener('click', hide);
+
+        window.addEventListener('error', function (e) {
+            var file = e.filename ? e.filename.split('/').pop() : '?';
+            show('[JS ERROR] ' + e.message + ' (' + file + ':' + e.lineno + ')');
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+            var reason = e.reason ? (e.reason.message || e.reason) : 'Unknown Promise Rejection';
+            show('[REJECTION] ' + reason);
+        });
+    })();
+</script>
+
+<!-- Ambient Atmospheric Layers -->
+<div class="ambient-glow"></div>
+<div class="grid-overlay"></div>
+<canvas id="webglCanvas" style="position: fixed; inset: 0; z-index: 2; pointer-events: auto; outline: none;"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="noise-overlay"></div>
+
+<!-- Corner brackets -->
+<div class="corner-bracket tl"></div>
+<div class="corner-bracket tr"></div>
+<div class="corner-bracket bl"></div>
+<div class="corner-bracket br"></div>
+
+<!-- Corner System HUD metadata -->
+<div class="sys-meta tl">
+    <span><span class="dim">SYS.INIT_SEQ //</span> <span class="accent">0x48A</span></span>
+    <span class="dim">MEM.ALLOC // 1024TB</span>
+    <span class="dim" data-i18n="sysPhase">PHASE :: BOOT</span>
+</div>
+<div class="sys-meta tr">
+    <span class="accent" data-i18n="sysNet">NET.STATUS // SECURE</span>
+    <span class="dim">SYSTEM_CLOCK // <span id="clock">00:00:00:00</span></span>
+    <span class="dim">UPTIME: 99.99%</span>
+</div>
+<div class="sys-meta bl">
+    <button class="sys-btn" id="backBtn" type="button" aria-label="Back">
+        <span class="dim">ESC //</span> <span class="accent" data-i18n="back">BACK</span>
+    </button>
+    <span class="dim" data-i18n="sysCh">CHANNEL // 0xD4B7</span>
+    <span class="dim"><span data-i18n="sysHb">HEARTBEAT //</span> <span id="hb">●</span></span>
+</div>
+<div class="sys-meta br">
+    <button class="sys-btn" id="soundBtn" type="button" aria-label="Toggle sound" style="margin-bottom: 4px;">
+        <span class="dim">SOUND //</span> <span class="accent" id="soundLabel">ON</span>
+    </button>
+    <button class="sys-btn" id="langBtn" type="button" aria-label="Toggle language">
+        <span class="dim">LANG //</span> <span class="accent" id="langLabel">EN</span>
+    </button>
+</div>
+
+<!-- "THE ARCHITECT" Redesigned Boot stage (Customized for oklahomin) -->
+<section class="boot-stage" id="bootStage" aria-label="System Boot">
+    <div class="brand-lockup">
+        <h1 class="brand-title">oklahomin</h1>
+        <div class="brand-sub">SYSTEM ENTRY GATEWAY V2.0.4</div>
+    </div>
+    <div class="enter-prompt">
+        <button class="btn" type="button" id="enterBtn" aria-label="Initiate system">
+            <span class="ms">power_settings_new</span>
+            <span data-i18n="initiate">[INITIATE SYSTEM]</span>
+            <span class="term-cursor"></span>
+        </button>
+        <div class="awaiting-box" data-i18n="awaiting">[AWAITING_COMMAND]</div>
+    </div>
+</section>
+
+<!-- Top contextual section label -->
+<div class="top-context" id="topContext">
+    <span class="name" id="ctxName">&nbsp;</span>
+</div>
+
+<!-- Hidden radial hit-zones for transparent mouse clicks -->
+<section class="menu-stage" id="menuStage" aria-label="Main Menu">
+    <div class="radial">
+        <div class="radial-ring">
+            <!-- Hidden overlay inputs mapped directly to Three.js rotations -->
+            <button class="node n-0" data-section="about" aria-label="About"></button>
+            <button class="node n-1" data-section="projects" aria-label="Projects"></button>
+            <button class="node n-2" data-section="socials" aria-label="Socials"></button>
+            <button class="node n-3" data-section="contacts" aria-label="Contacts"></button>
+        </div>
+    </div>
+</section>
+
+<!-- Panel stage (HTML Drawer overlay window) -->
+<section class="panel-stage" id="panelStage" aria-label="Section Panel">
+    <div class="panel" id="panel" role="dialog" aria-modal="false" aria-labelledby="panelTitle">
+        <header class="panel-header">
+            <div class="h-left">
+                <span class="ms" id="panelIcon">person</span>
+                <span class="h-title" id="panelTitle">SECTION</span>
+            </div>
+            <div class="h-left" style="gap:14px;">
+                <span class="h-meta" id="panelMeta">REC // 0x00</span>
+                <button class="h-close" type="button" aria-label="Close panel" id="closeBtn">
+                    <span class="ms">close</span>
+                </button>
+            </div>
+        </header>
+        <div class="panel-body" id="panelBody">
+            <!-- Injected by JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Boot flash overlay -->
+<div class="boot-flash" id="bootFlash"></div>
+
+<!-- Load scripts modularly -->
+<script src="sfx.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
