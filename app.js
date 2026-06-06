@@ -13,6 +13,8 @@ import {
 // Expose state globally for scene ticker loop
 window.appStatePhase = 'boot';
 window.currentFocusedKey = null;
+let lastHoverX = -9999;
+let lastHoverY = -9999;
 
 const STATE = {
     phase: 'boot', // boot | home | projects_ring | socials_ring | panel
@@ -267,8 +269,8 @@ function rebuildHTMLRing() {
             e.preventDefault();
             selectNode(key);
         });
-        btn.addEventListener("pointerenter", () => {
-            handleNodeHover(key);
+        btn.addEventListener("pointerenter", (e) => {
+            handleNodeHover(key, e);
         });
         
         ring.appendChild(btn);
@@ -669,8 +671,13 @@ function handleKey(e) {
     }
 }
 
-function handleNodeHover(key) {
+function handleNodeHover(key, e) {
     if (STATE.device === 'touch') return;
+    if (e) {
+        if (e.clientX === lastHoverX && e.clientY === lastHoverY) return;
+        lastHoverX = e.clientX;
+        lastHoverY = e.clientY;
+    }
     const keys = getActiveKeys();
     const idx = keys.indexOf(key);
     if (idx !== -1 && idx !== STATE.focusedIndex) {

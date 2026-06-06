@@ -766,7 +766,7 @@ export function populateOrbitRing(ringId) {
         orbitGroup.remove(child);
     }
 
-    const radius = window.innerWidth < 600 ? 15 : 22;
+    const radius = window.innerWidth < 600 ? 38 : 60;
     const nodes = {};
 
     if (ringId === 'home') {
@@ -930,7 +930,7 @@ function animate(now = 0) {
     }
 
     // Spotlight color & dynamic radius positioning lerp
-    const activeRadius = window.innerWidth < 600 ? 15 : 22;
+    const activeRadius = window.innerWidth < 600 ? 38 : 60;
     spotlight.position.z = activeRadius;
     spotlightMesh.position.z = activeRadius;
 
@@ -973,13 +973,13 @@ function animate(now = 0) {
     // Apply scale animations & float behavior to active ring children
     orbitGroup.children.forEach((child, idx) => {
         const key = child.userData.nodeKey || idx;
-        const targetScale = window.currentFocusedKey === key ? 1.4 : 0.3;
+        const targetScale = window.currentFocusedKey === key ? 1.4 : 0.85;
         
         modelScales[key] = THREE.MathUtils.lerp(modelScales[key] || 0.001, targetScale, expF(0.1, dt));
         child.scale.setScalar(modelScales[key]);
 
         // Traverse child to fade opacity dynamically based on focus
-        const targetOpacityFactor = window.currentFocusedKey === key ? 1.0 : 0.02;
+        const targetOpacityFactor = window.currentFocusedKey === key ? 1.0 : 0.6;
         child.traverse(node => {
             if (node.isMesh && node.material && node.material.uniforms && node.material.uniforms.opacity) {
                 node.material.uniforms.opacity.value = THREE.MathUtils.lerp(
@@ -1012,11 +1012,11 @@ function animate(now = 0) {
         targetCamPos.set(0, 10, 32);
         targetLookAt.set(0, 4, 0);
     } else if (statePhase === 'home') {
-        targetCamPos.set(0, 1.5, 70 * zoomFactor);
-        targetLookAt.set(0, 0, 0);
+        targetCamPos.set(0, 25, 140 * zoomFactor);
+        targetLookAt.set(0, 2, 20);
     } else if (statePhase === 'projects_ring' || statePhase === 'socials_ring') {
-        targetCamPos.set(0, 1.5, 70 * zoomFactor);
-        targetLookAt.set(0, 0, 0);
+        targetCamPos.set(0, 38, 125 * zoomFactor);
+        targetLookAt.set(0, 0, 20);
     } else if (statePhase === 'panel') {
         if (aspect < 1.0) {
             targetCamPos.set(0, 44, 150 * zoomFactor);
@@ -1043,7 +1043,7 @@ function onWindowResize() {
         renderer.setSize(window.innerWidth, window.innerHeight);
 
         // Dynamically adjust orbit child positions on resize
-        const radius = window.innerWidth < 600 ? 15 : 22;
+        const radius = window.innerWidth < 600 ? 38 : 60;
         const count = orbitGroup.children.length;
         if (count === 4) {
             orbitGroup.children.forEach(child => {
