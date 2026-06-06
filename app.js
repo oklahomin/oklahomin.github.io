@@ -8,7 +8,7 @@ import {
     updateDragRotation,
     getTargetRotation,
     setSpotlightColor
-} from './scene.js?v=1.0.1';
+} from './scene.js?v=1.0.2';
 
 // Expose state globally for scene ticker loop
 window.appStatePhase = 'boot';

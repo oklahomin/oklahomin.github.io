@@ -973,13 +973,13 @@ function animate(now = 0) {
     // Apply scale animations & float behavior to active ring children
     orbitGroup.children.forEach((child, idx) => {
         const key = child.userData.nodeKey || idx;
-        const targetScale = window.currentFocusedKey === key ? 1.4 : 0.85;
-        
+        const targetScale = window.currentFocusedKey === key ? 1.25 : 1.0;
+
         modelScales[key] = THREE.MathUtils.lerp(modelScales[key] || 0.001, targetScale, expF(0.1, dt));
         child.scale.setScalar(modelScales[key]);
 
         // Traverse child to fade opacity dynamically based on focus
-        const targetOpacityFactor = window.currentFocusedKey === key ? 1.0 : 0.6;
+        const targetOpacityFactor = window.currentFocusedKey === key ? 1.0 : 0.88;
         child.traverse(node => {
             if (node.isMesh && node.material && node.material.uniforms && node.material.uniforms.opacity) {
                 node.material.uniforms.opacity.value = THREE.MathUtils.lerp(
